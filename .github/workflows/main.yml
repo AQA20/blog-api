@@ -6,7 +6,7 @@ on:
 
 jobs:
   setup-server:
-    runs-on: self-hosted 
+    runs-on: self-hosted
     # Combined both server jobs using conditions
     steps:
       - name: Set environment variables
@@ -28,11 +28,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ${{ github.ref_name }}
-          fetch-depth: 1  # Shallow clone for better performance
+          fetch-depth: 1 # Shallow clone for better performance
 
       - name: Create and secure env file
         run: |
-          cd ${{ github.ref_name }}
           touch .env
           sudo chmod 600 .env
           # Populate .env file with required variables
@@ -64,7 +63,7 @@ jobs:
             NEXT_JS_URL="${{ secrets.NEXT_JS_URL }}${{env.ENV_SUFFIX}}"
             USERS="${{ secrets.USERS }}${{env.ENV_SUFFIX}}"
           EOF
-
+        working-directory: ${{ github.ref_name }}
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -72,16 +71,19 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}-${{ hashFiles('package-lock.json') }}
           restore-keys: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}
+          working-directory: ${{ github.ref_name }}
 
       - name: Install dependencies
         run: |
           npm cache clean --force
           npm ci
+        working-directory: ${{ github.ref_name }}
 
       - name: Setup database
         run: |
           npm run migrate
           npm run seed
+        working-directory: ${{ github.ref_name }}
 
   deploy:
     runs-on: self-hosted
@@ -103,7 +105,8 @@ jobs:
           echo "Starting application with PM2..."
           pm2 start pm2.config.js
           pm2 save
-          
+        working-directory: ${{ github.ref_name }}
+
       - name: Restart Nginx
         run: |
           echo "Reloading Nginx..."
