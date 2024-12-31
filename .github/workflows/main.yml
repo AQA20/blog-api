@@ -52,7 +52,6 @@ jobs:
             echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
             echo "AWS_FILE_BUCKET=${{ secrets[format('AWS_FILE_BUCKET{0}', env.ENV_SUFFIX)] }}"
             echo "AWS_REGION=${{ secrets[format('AWS_REGION{0}', env.ENV_SUFFIX)] }}"
-            echo "AWS_S3_OBJECT_BASEURL=${{ secrets[format('AWS_S3_OBJECT_BASEURL{0}', env.ENV_SUFFIX)] }}"
             echo "JWT_SECRET=${{ secrets[format('JWT_SECRET{0}', env.ENV_SUFFIX)] }}"
             echo "JWT_REFRESH_SECRET=${{ secrets[format('JWT_REFRESH_SECRET{0}', env.ENV_SUFFIX)] }}"
             echo "SALT_ROUNDS=${{ secrets.SALT_ROUNDS }}"
