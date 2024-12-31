@@ -41,7 +41,7 @@ jobs:
         run: |
           {
             echo NODE_ENV="${{ env.NODE_ENV }}"
-            echoPM2_NAME="${{ env.PM2_NAME }}"
+            echo PM2_NAME="${{ env.PM2_NAME }}"
             echo DB_USERNAME="${{ secrets.DB_USERNAME }}"
             echo DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             echo DB_NAME="${{ secrets.DB_NAME }}"
