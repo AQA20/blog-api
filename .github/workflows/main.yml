@@ -19,6 +19,7 @@ jobs:
           else
             echo "CACHE_KEY=testing" >> $GITHUB_ENV
             echo "NODE_ENV=testing" >> $GITHUB_ENV
+
             echo "PM2_NAME=test-server2" >> $GITHUB_ENV
           fi
 
@@ -67,36 +68,36 @@ jobs:
           } >> .env
         working-directory: ${{ github.ref_name }}
 
-      - name: Populate .env file with required production variables
+      - name: Populate .env file with required testing variables
         if: ${{ github.ref_name == 'test' }}
         run: |
           {
             echo "NODE_ENV=\"${{ env.NODE_ENV }}\""
             echo "PM2_NAME=\"${{ env.PM2_NAME }}\""
-            echo "DB_USERNAME=\"${{ secrets.DB_USERNAME }}\""
-            echo "DB_PASSWORD=\"${{ secrets.DB_PASSWORD }}\""
-            echo "DB_NAME=\"${{ secrets.DB_NAME }}\""
+            echo "DB_USERNAME=\"${{ secrets.DB_USERNAME_TEST }}\""
+            echo "DB_PASSWORD=\"${{ secrets.DB_PASSWORD_TEST }}\""
+            echo "DB_NAME=\"${{ secrets.DB_NAME_TEST }}\""
             echo "DB_PORT=\"${{ secrets.DB_PORT }}\""
-            echo "MYSQL_SSL_CA=\"${{ secrets.MYSQL_SSL_CA }}\""
-            echo "MYSQL_SSL_CERT=\"${{ secrets.MYSQL_SSL_CERT }}\""
-            echo "MYSQL_SSL_KEY=\"${{ secrets.MYSQL_SSL_KEY }}\""
+            echo "MYSQL_SSL_CA=\"${{ secrets.MYSQL_SSL_CA_TEST }}\""
+            echo "MYSQL_SSL_CERT=\"${{ secrets.MYSQL_SSL_CERT_TEST }}\""
+            echo "MYSQL_SSL_KEY=\"${{ secrets.MYSQL_SSL_KEY_TEST }}\""
             echo "AWS_ACCESS_KEY_ID=\"${{ secrets.AWS_ACCESS_KEY_ID }}\""
             echo "AWS_SECRET_ACCESS_KEY=\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\""
-            echo "AWS_FILE_BUCKET=\"${{ secrets.AWS_FILE_BUCKET }}\""
-            echo "AWS_REGION=\"${{ secrets.AWS_REGION }}\""
-            echo "JWT_SECRET=\"${{ secrets.JWT_SECRET }}\""
-            echo "JWT_REFRESH_SECRET=\"${{ secrets.JWT_REFRESH_SECRET }}\""
+            echo "AWS_FILE_BUCKET=\"${{ secrets.AWS_FILE_BUCKET_TEST }}\""
+            echo "AWS_REGION=\"${{ secrets.AWS_REGION_TEST }}\""
+            echo "JWT_SECRET=\"${{ secrets.JWT_SECRET_TEST }}\""
+            echo "JWT_REFRESH_SECRET=\"${{ secrets.JWT_REFRESH_SECRET_TEST }}\""
             echo "SALT_ROUNDS=\"${{ secrets.SALT_ROUNDS }}\""
-            echo "PORT=\"${{ secrets.PORT }}\""
+            echo "PORT=\"${{ secrets.PORT_TEST }}\""
             echo "SERVER_IP=\"${{ secrets.SERVER_IP }}\""
-            echo "COOKIE_SECRET=\"${{ secrets.COOKIE_SECRET }}\""
-            echo "CLOUDFRONT_BASE_URL=\"${{ secrets.CLOUDFRONT_BASE_URL }}\""
+            echo "COOKIE_SECRET=\"${{ secrets.COOKIE_SECRET_TEST }}\""
+            echo "CLOUDFRONT_BASE_URL=\"${{ secrets.CLOUDFRONT_BASE_URL_TEST }}\""
             echo "CLOUDFRONT_KEY_PAIR_ID=\"${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}\""
             echo "CLOUDFRONT_PRIVATE_KEY=\"${{ secrets.CLOUDFRONT_PRIVATE_KEY }}\""
-            echo "REVALIDATION_SECRET=\"${{ secrets.REVALIDATION_SECRET }}\""
-            echo "NEXT_JS_API_URL=\"${{ secrets.NEXT_JS_API_URL }}\""
-            echo "NEXT_JS_URL=\"${{ secrets.NEXT_JS_URL }}\""
-            echo "USERS=\"${{ secrets.USERS }}\""
+            echo "REVALIDATION_SECRET=\"${{ secrets.REVALIDATION_SECRET_TEST }}\""
+            echo "NEXT_JS_API_URL=\"${{ secrets.NEXT_JS_API_URL_TEST }}\""
+            echo "NEXT_JS_URL=\"${{ secrets.NEXT_JS_URL_TEST }}\""
+            echo "USERS=\"${{ secrets.USERS_TEST }}\""
           } >> .env
         working-directory: ${{ github.ref_name }}
 
