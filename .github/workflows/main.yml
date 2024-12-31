@@ -32,6 +32,7 @@ jobs:
 
       - name: Create and secure env file
         run: |
+          cd ${{ github.ref_name }}
           touch .env
           sudo chmod 600 .env
           # Populate .env file with required variables
