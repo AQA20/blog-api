@@ -71,7 +71,7 @@ jobs:
       - name: Populate .env file with required testing variables
         if: ${{ github.ref_name == 'test' }}
         run: |
-          cat <<EOF >> .env
+          cat <<'EOF' >> .env
                 NODE_ENV=${{ env.NODE_ENV }}
                 PM2_NAME=${{ env.PM2_NAME }}
                 DB_USERNAME=${{ secrets.DB_USERNAME_TEST }}
