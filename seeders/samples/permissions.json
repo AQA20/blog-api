@@ -1,0 +1,21 @@
+{
+  "Admin": [
+    "manage_posts",
+    "manage_comments",
+    "manage_users",
+    "manage_categories",
+    "manage_tags",
+    "manage_settings",
+    "access_admin_panel",
+    "create_posts"
+  ],
+  "Author": [
+    "create_new_posts",
+    "edit_own_posts",
+    "delete_own_posts",
+    "manage_own_tags",
+    "manage_own_categories"
+  ],
+  "Registered User": ["comment", "edit_profile", "change_password"],
+  "Guest": ["register", "login", "reset_password"]
+}

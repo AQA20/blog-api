@@ -1,0 +1,9 @@
+# local env files
+.env*.local
+.env*.prod
+.env*.test
+.env*.dev
+.env
+
+node_modules
+.vscode/*

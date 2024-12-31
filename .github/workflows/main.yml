@@ -1,0 +1,111 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, test]
+
+jobs:
+  setup-server:
+    runs-on: self-hosted 
+    # Combined both server jobs using conditions
+    steps:
+      - name: Set environment variables
+        id: set-env
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            echo "CACHE_KEY=production" >> $GITHUB_ENV
+            echo "NODE_ENV=production" >> $GITHUB_ENV
+            echo "ENV_SUFFIX=" >> $GITHUB_ENV
+            echo "PM2_NAME=server2" >> $GITHUB_ENV
+          else
+            echo "CACHE_KEY=testing" >> $GITHUB_ENV
+            echo "NODE_ENV=testing" >> $GITHUB_ENV
+            echo "ENV_SUFFIX=_TEST" >> $GITHUB_ENV
+            echo "PM2_NAME=test-server2" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.ref_name }}
+          fetch-depth: 1  # Shallow clone for better performance
+
+      - name: Create and secure env file
+        run: |
+          touch .env
+          sudo chmod 600 .env
+          # Populate .env file with required variables
+          {
+            echo "NODE_ENV=${{ env.NODE_ENV }}"
+            echo "DB_USERNAME=${{ secrets[format('DB_USERNAME{0}', env.ENV_SUFFIX)] }}"
+            echo "PM2_NAME=${{ env.PM2_NAME }}"
+            echo "DB_PASSWORD=${{ secrets[format('DB_PASSWORD{0}', env.ENV_SUFFIX)] }}"
+            echo "DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}"
+            echo "DB_NAME=${{ secrets[format('DB_NAME{0}', env.ENV_SUFFIX)] }}"
+            echo "DB_HOST=${{ secrets.DB_HOST }}"
+            echo "DB_PORT=${{ secrets.DB_PORT }}"
+            echo "MYSQL_SSL_CA=${{ secrets[format('MYSQL_SSL_CA{0}', env.ENV_SUFFIX)] }}"
+            echo "MYSQL_SSL_CERT=${{ secrets[format('MYSQL_SSL_CERT{0}', env.ENV_SUFFIX)] }}"
+            echo "MYSQL_SSL_KEY=${{ secrets[format('MYSQL_SSL_KEY{0}', env.ENV_SUFFIX)] }}"
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            echo "AWS_FILE_BUCKET=${{ secrets[format('AWS_FILE_BUCKET{0}', env.ENV_SUFFIX)] }}"
+            echo "AWS_REGION=${{ secrets[format('AWS_REGION{0}', env.ENV_SUFFIX)] }}"
+            echo "AWS_S3_OBJECT_BASEURL=${{ secrets[format('AWS_S3_OBJECT_BASEURL{0}', env.ENV_SUFFIX)] }}"
+            echo "JWT_SECRET=${{ secrets[format('JWT_SECRET{0}', env.ENV_SUFFIX)] }}"
+            echo "JWT_REFRESH_SECRET=${{ secrets[format('JWT_REFRESH_SECRET{0}', env.ENV_SUFFIX)] }}"
+            echo "SALT_ROUNDS=${{ secrets.SALT_ROUNDS }}"
+            echo "PORT=${{ secrets[format('PORT{0}', env.ENV_SUFFIX)] }}"
+            echo "SERVER_IP=${{ secrets.SERVER_IP }}"
+            echo "COOKIE_SECRET=${{ secrets[format('COOKIE_SECRET{0}', env.ENV_SUFFIX)] }}"
+            echo "CLOUDFRONT_BASE_URL=${{ secrets[format('CLOUDFRONT_BASE_URL{0}', env.ENV_SUFFIX)] }}"
+            echo "CLOUDFRONT_KEY_PAIR_ID=${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}"
+            echo "CLOUDFRONT_PRIVATE_KEY=${{ secrets.CLOUDFRONT_PRIVATE_KEY }}"
+            echo "REVALIDATION_SECRET=${{ secrets[format('REVALIDATION_SECRET{0}', env.ENV_SUFFIX)] }}"
+            echo "NEXT_JS_API_URL=${{ secrets[format('NEXT_JS_API_URL{0}', env.ENV_SUFFIX)] }}"
+            echo "NEXT_JS_URL=${{ secrets[format('NEXT_JS_URL{0}', env.ENV_SUFFIX)] }}"
+            echo "USERS=${{ secrets[format('USERS{0}', env.ENV_SUFFIX)] }}"
+          } >> .env
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup database
+        run: |
+          npm run migrate
+          npm run seed
+
+  deploy:
+    runs-on: self-hosted
+    needs: setup-server
+    steps:
+      - name: Install pm2 globally
+        run: |
+          npm install pm2@latest -g
+          pm2 update
+
+      - name: Stop existing processes
+        continue-on-error: true
+        run: |
+          pm2 delete ${{ env.PM2_NAME }}
+          pm2 flush
+
+      - name: Start server with pm2
+        run: |
+          echo "Starting application with PM2..."
+          pm2 start pm2.config.js --env .env
+          pm2 save
+          
+      - name: Restart Nginx
+        run: |
+          echo "Reloading Nginx..."
+          sudo systemctl reload nginx
+          echo "Restarting Nginx..."
+          sudo systemctl restart nginx

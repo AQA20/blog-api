@@ -1,0 +1,57 @@
+{
+  "name": "blog-api",
+  "version": "1.0.0",
+  "description": "Blog API",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "migration:create": "node umzug/migrate create --name",
+    "migrate": "node umzug/migrate up",
+    "migrate:status": "node umzug/migrateStatus.js",
+    "migrate:rollback": "node umzug/migrate down",
+    "migrate:rollback:all": "node  umzug/migrate down --to 0",
+    "seed": "node umzug/seed up",
+    "seed:status": "node umzug/seedStatus.js",
+    "seed:create": "node umzug/seed create --name",
+    "seed:rollback": "node umzug/seed down",
+    "seed:rollback:all": "node umzug/seed down --to 0",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "author": "Ahmad AbuDawaba",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.535.0",
+    "@aws-sdk/cloudfront-signer": "^3.567.0",
+    "bcryptjs": "^2.4.3",
+    "cls-hooked": "^4.2.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "isomorphic-dompurify": "^2.9.0",
+    "joi": "^17.12.2",
+    "jsdom": "^25.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.2",
+    "sequelize": "^6.37.5",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.24.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.3",
+    "eslint-config-prettier": "^9.1.0",
+    "nodemon": "^3.1.0",
+    "umzug": "^3.7.0"
+  }
+}

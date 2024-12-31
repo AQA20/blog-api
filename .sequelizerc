@@ -1,0 +1,10 @@
+// .sequelizerc
+const path = require('path');
+
+
+configPath = path.resolve('./config/databaseConfig.js')
+
+
+module.exports = {
+  'config': configPath,
+}
