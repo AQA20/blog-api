@@ -68,7 +68,7 @@ jobs:
         working-directory: ${{ github.ref_name }}
 
       - name: Populate .env file with required production variables
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'test' }}
         run: |
           {
             echo "NODE_ENV=\"${{ env.NODE_ENV }}\""
