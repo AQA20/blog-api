@@ -38,34 +38,34 @@ jobs:
       - name: Populate .env file with required production variables
         if: ${{ github.ref_name == 'main' }}
         run: |
-          {
-            echo NODE_ENV="${{ env.NODE_ENV }}"
-            echo PM2_NAME="${{ env.PM2_NAME }}"
-            echo DB_USERNAME="${{ secrets.DB_USERNAME }}"
-            echo DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-            echo DB_NAME="${{ secrets.DB_NAME }}"
-            echo DB_PORT="${{ secrets.DB_PORT }}"
-            echo MYSQL_SSL_CA="${{ secrets.MYSQL_SSL_CA }}"
-            echo MYSQL_SSL_CERT="${{ secrets.MYSQL_SSL_CERT }}"
-            echo MYSQL_SSL_KEY="${{ secrets.MYSQL_SSL_KEY }}"
-            echo AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-            echo AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            echo AWS_FILE_BUCKET="${{ secrets.AWS_FILE_BUCKET }}"
-            echo AWS_REGION="${{ secrets.AWS_REGION }}"
-            echo JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            echo JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
-            echo SALT_ROUNDS="${{ secrets.SALT_ROUNDS }}"
-            echo PORT="${{ secrets.PORT }}"
-            echo SERVER_IP="${{ secrets.SERVER_IP }}"
-            echo COOKIE_SECRET="${{ secrets.COOKIE_SECRET }}"
-            echo CLOUDFRONT_BASE_URL="${{ secrets.CLOUDFRONT_BASE_URL }}"
-            echo CLOUDFRONT_KEY_PAIR_ID="${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}"
-            echo CLOUDFRONT_PRIVATE_KEY="${{ secrets.CLOUDFRONT_PRIVATE_KEY }}"
-            echo REVALIDATION_SECRET="${{ secrets.REVALIDATION_SECRET }}"
-            echo NEXT_JS_API_URL="${{ secrets.NEXT_JS_API_URL }}"
-            echo NEXT_JS_URL="${{ secrets.NEXT_JS_URL }}"
-            echo USERS="${{ secrets.USERS }}"
-          } >> .env
+          cat <<'EOF' >> .env
+                NODE_ENV="${{ env.NODE_ENV }}"
+                PM2_NAME="${{ env.PM2_NAME }}"
+                DB_USERNAME="${{ secrets.DB_USERNAME }}"
+                DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+                DB_NAME="${{ secrets.DB_NAME }}"
+                DB_PORT="${{ secrets.DB_PORT }}"
+                MYSQL_SSL_CA="${{ secrets.MYSQL_SSL_CA }}"
+                MYSQL_SSL_CERT="${{ secrets.MYSQL_SSL_CERT }}"
+                MYSQL_SSL_KEY="${{ secrets.MYSQL_SSL_KEY }}"
+                AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+                AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+                AWS_FILE_BUCKET="${{ secrets.AWS_FILE_BUCKET }}"
+                AWS_REGION="${{ secrets.AWS_REGION }}"
+                JWT_SECRET="${{ secrets.JWT_SECRET }}"
+                JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
+                SALT_ROUNDS="${{ secrets.SALT_ROUNDS }}"
+                PORT="${{ secrets.PORT }}"
+                SERVER_IP="${{ secrets.SERVER_IP }}"
+                COOKIE_SECRET="${{ secrets.COOKIE_SECRET }}"
+                CLOUDFRONT_BASE_URL="${{ secrets.CLOUDFRONT_BASE_URL }}"
+                CLOUDFRONT_KEY_PAIR_ID="${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}"
+                CLOUDFRONT_PRIVATE_KEY="${{ secrets.CLOUDFRONT_PRIVATE_KEY }}"
+                REVALIDATION_SECRET="${{ secrets.REVALIDATION_SECRET }}"
+                NEXT_JS_API_URL="${{ secrets.NEXT_JS_API_URL }}"
+                NEXT_JS_URL="${{ secrets.NEXT_JS_URL }}"
+                USERS="${{ secrets.USERS }}"
+          EOF
         working-directory: ${{ github.ref_name }}
 
       - name: Populate .env file with required testing variables
@@ -129,16 +129,24 @@ jobs:
           npm install pm2@latest -g
           pm2 update
 
-      - name: Stop existing processes
+      - name: Stop production server
+        if: ${{ github.ref_name == 'main' }}
         continue-on-error: true
         run: |
-          pm2 delete ${{ env.PM2_NAME }}
+          pm2 delete server2
+          pm2 flush
+
+      - name: Stop testing server
+        if: ${{ github.ref_name == 'test' }}
+        continue-on-error: true
+        run: |
+          pm2 delete test-server2
           pm2 flush
 
       - name: Start server with pm2
         run: |
           echo "Starting application with PM2..."
-          pm2 start pm2.config.js
+          pm2 start pm2.config.cjs
           pm2 save
         working-directory: ${{ github.ref_name }}
 
