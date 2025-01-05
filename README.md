@@ -26,6 +26,7 @@ If you plan to use AWS as I do, set up or create an AWS account and configure th
 git clone git@github.com:AQA20/500kalima-api.git
 cd 500kalima-api
 ```
+
 ---
 
 ## Setup Server
@@ -68,7 +69,8 @@ To run app in production mode:
 npm run start
 ```
 
-### After Deploying the app i'm using pm2 to run the server 
+### After Deploying the app i'm using pm2 to run the server
+
 ### Running with PM2
 
 To run the application using PM2, use:
@@ -78,6 +80,7 @@ pm2 start pm2.config.js --env .env
 ```
 
 For deployment configuration details, check:
+
 - `.github/workflows/main.yml` for CI/CD setup
 - `pm2.config.cjs` for PM2 configuration
 

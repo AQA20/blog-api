@@ -3,156 +3,89 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, test]
-
 jobs:
-  setup-server:
+  create_branch_directory:
     runs-on: self-hosted
-    # Combined both server jobs using conditions
     steps:
-      - name: Set environment variables
+      - name: Create the Branch Directory
+        run: |
+          mkdir -p ${{ github.ref_name }}
+
+  start-server:
+    needs: create_branch_directory
+    runs-on: self-hosted
+    outputs:
+      cache-hit: ${{ steps.server_node_modules.outputs.cache-hit }}
+    defaults:
+      run:
+        working-directory: ${{ github.ref_name }}
+
+    steps:
+      - name: Set Environment Variables
         id: set-env
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            echo "CACHE_KEY=production" >> $GITHUB_ENV
-            echo "NODE_ENV=production" >> $GITHUB_ENV
-            echo "PM2_NAME=server2" >> $GITHUB_ENV
-          else
-            echo "CACHE_KEY=testing" >> $GITHUB_ENV
-            echo "NODE_ENV=testing" >> $GITHUB_ENV
-
-            echo "PM2_NAME=test-server2" >> $GITHUB_ENV
-          fi
+          echo "CACHE_KEY=${{ github.ref_name == 'main' && 'production' || 'testing' }}" >> $GITHUB_ENV
+          echo "PACKAGE_LOCK_PATH=${{ github.ref_name}}/server/package-lock.json" >> $GITHUB_ENV
+          echo "PM2_SERVER_NAME=${{ github.ref_name == 'main' && 'server' || 'test-server'}}" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           path: ${{ github.ref_name }}
-          fetch-depth: 1 # Shallow clone for better performance
 
-      - name: Create and secure env file
-        run: |
-          touch .env
-          sudo chmod 600 .env
-        working-directory: ${{ github.ref_name }}
-
-      - name: Populate .env file with required production variables
-        if: ${{ github.ref_name == 'main' }}
-        run: |
-          cat <<'EOF' >> .env
-                NODE_ENV="${{ env.NODE_ENV }}"
-                PM2_NAME="${{ env.PM2_NAME }}"
-                DB_USERNAME="${{ secrets.DB_USERNAME }}"
-                DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-                DB_NAME="${{ secrets.DB_NAME }}"
-                DB_PORT="${{ secrets.DB_PORT }}"
-                MYSQL_SSL_CA="${{ secrets.MYSQL_SSL_CA }}"
-                MYSQL_SSL_CERT="${{ secrets.MYSQL_SSL_CERT }}"
-                MYSQL_SSL_KEY="${{ secrets.MYSQL_SSL_KEY }}"
-                AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-                AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-                AWS_FILE_BUCKET="${{ secrets.AWS_FILE_BUCKET }}"
-                AWS_REGION="${{ secrets.AWS_REGION }}"
-                JWT_SECRET="${{ secrets.JWT_SECRET }}"
-                JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
-                SALT_ROUNDS="${{ secrets.SALT_ROUNDS }}"
-                PORT="${{ secrets.PORT }}"
-                SERVER_IP="${{ secrets.SERVER_IP }}"
-                COOKIE_SECRET="${{ secrets.COOKIE_SECRET }}"
-                CLOUDFRONT_BASE_URL="${{ secrets.CLOUDFRONT_BASE_URL }}"
-                CLOUDFRONT_KEY_PAIR_ID="${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}"
-                CLOUDFRONT_PRIVATE_KEY="${{ secrets.CLOUDFRONT_PRIVATE_KEY }}"
-                REVALIDATION_SECRET="${{ secrets.REVALIDATION_SECRET }}"
-                NEXT_JS_API_URL="${{ secrets.NEXT_JS_API_URL }}"
-                NEXT_JS_URL="${{ secrets.NEXT_JS_URL }}"
-                USERS="${{ secrets.USERS }}"
-          EOF
-        working-directory: ${{ github.ref_name }}
-
-      - name: Populate .env file with required testing variables
-        if: ${{ github.ref_name == 'test' }}
-        run: |
-          cat <<'EOF' >> .env
-                NODE_ENV=${{ env.NODE_ENV }}
-                PM2_NAME=${{ env.PM2_NAME }}
-                DB_USERNAME=${{ secrets.DB_USERNAME_TEST }}
-                DB_PASSWORD=${{ secrets.DB_PASSWORD_TEST }}
-                DB_NAME=${{ secrets.DB_NAME_TEST }}
-                DB_PORT=${{ secrets.DB_PORT }}
-                MYSQL_SSL_CA=${{ secrets.MYSQL_SSL_CA_TEST }}
-                MYSQL_SSL_CERT=${{ secrets.MYSQL_SSL_CERT_TEST }}
-                MYSQL_SSL_KEY=${{ secrets.MYSQL_SSL_KEY_TEST }}
-                AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-                AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                AWS_FILE_BUCKET=${{ secrets.AWS_FILE_BUCKET_TEST }}
-                AWS_REGION=${{ secrets.AWS_REGION_TEST }}
-                JWT_SECRET=${{ secrets.JWT_SECRET_TEST }}
-                JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET_TEST }}
-                SALT_ROUNDS=${{ secrets.SALT_ROUNDS }}
-                PORT=${{ secrets.PORT_TEST }}
-                SERVER_IP=${{ secrets.SERVER_IP }}
-                COOKIE_SECRET=${{ secrets.COOKIE_SECRET_TEST }}
-                CLOUDFRONT_BASE_URL=${{ secrets.CLOUDFRONT_BASE_URL_TEST }}
-                CLOUDFRONT_KEY_PAIR_ID=${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}
-                CLOUDFRONT_PRIVATE_KEY=${{ secrets.CLOUDFRONT_PRIVATE_KEY }}
-                REVALIDATION_SECRET=${{ secrets.REVALIDATION_SECRET_TEST }}
-                NEXT_JS_API_URL=${{ secrets.NEXT_JS_API_URL_TEST }}
-                NEXT_JS_URL=${{ secrets.NEXT_JS_URL_TEST }}
-                USERS=${{ secrets.USERS_TEST }}
-              EOF
-        working-directory: ${{ github.ref_name }}
-
-      - name: Cache npm dependencies
+      - name: Cache server npm dependencies
+        id: server_node_modules
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: ${{ runner.os }}-npm-server-${{ env.CACHE_KEY }}
-          working-directory: ${{ github.ref_name }}
+          path: ${{ github.ref_name }}/node_modules
+          key: ${{ runner.os }}-server-${{ env.CACHE_KEY }}-${{ hashFiles(env.PACKAGE_LOCK_PATH) }}
+          restore-keys: |
+            ${{ runner.os }}-server-${{ env.CACHE_KEY }}
 
-      - name: Install dependencies
-        run: |
-          npm ci
-        working-directory: ${{ github.ref_name }}
+      - name: Install npm dependencies
+        run: npm ci
+        if: steps.server_node_modules.outputs.cache-hit != 'true'
 
-      - name: Setup database
+      - name: Migrate, Seed Database and Start Server
         run: |
           npm run migrate
-          npm run seed
-        working-directory: ${{ github.ref_name }}
+          npm run seed 
+          pm2 restart pm2.config.cjs
+          pm2 save
+        env:
+          NODE_ENV: ${{ github.ref_name == 'main' && 'production' || 'testing' }}
+          DB_USERNAME: ${{ github.ref_name == 'main' && secrets.DB_USERNAME || secrets.DB_USERNAME_TEST }}
+          DB_PASSWORD: ${{ github.ref_name == 'main' && secrets.DB_PASSWORD || secrets.DB_PASSWORD_TEST }}
+          DB_NAME: ${{ github.ref_name == 'main' && secrets.DB_NAME || secrets.DB_NAME_TEST }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          MYSQL_SSL_CA: ${{ github.ref_name == 'main' && secrets.MYSQL_SSL_CA || secrets.MYSQL_SSL_CA_TEST }}
+          MYSQL_SSL_CERT: ${{ github.ref_name == 'main' && secrets.MYSQL_SSL_CERT || secrets.MYSQL_SSL_CERT_TEST }}
+          MYSQL_SSL_KEY: ${{ github.ref_name == 'main' && secrets.MYSQL_SSL_KEY || secrets.MYSQL_SSL_KEY_TEST }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_FILE_BUCKET: ${{ github.ref_name == 'main' && secrets.AWS_FILE_BUCKET || secrets.AWS_FILE_BUCKET_TEST }}
+          AWS_REGION: ${{ github.ref_name == 'main' && secrets.AWS_REGION || secrets.AWS_REGION_TEST }}
+          JWT_SECRET: ${{ github.ref_name == 'main' && secrets.JWT_SECRET || secrets.JWT_SECRET_TEST }}
+          JWT_REFRESH_SECRET: ${{ github.ref_name == 'main' && secrets.JWT_REFRESH_SECRET || secrets.JWT_REFRESH_SECRET_TEST }}
+          SALT_ROUNDS: ${{ secrets.SALT_ROUNDS }}
+          PORT: ${{ github.ref_name == 'main' && secrets.PORT || secrets.PORT_TEST }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          COOKIE_SECRET: ${{ github.ref_name == 'main' && secrets.COOKIE_SECRET || secrets.COOKIE_SECRET_TEST }}
+          CLOUDFRONT_BASE_URL: ${{ github.ref_name == 'main' && secrets.CLOUDFRONT_BASE_URL || secrets.CLOUDFRONT_BASE_URL_TEST }}
+          CLOUDFRONT_KEY_PAIR_ID: ${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}
+          CLOUDFRONT_PRIVATE_KEY: ${{ secrets.CLOUDFRONT_PRIVATE_KEY }}
+          REVALIDATION_SECRET: ${{ github.ref_name == 'main' && secrets.REVALIDATION_SECRET || secrets.REVALIDATION_SECRET_TEST }}
+          NEXT_JS_API_URL: ${{ github.ref_name == 'main' && secrets.NEXT_JS_API_URL || secrets.NEXT_JS_API_URL_TEST }}
+          NEXT_JS_URL: ${{ github.ref_name == 'main' && secrets.NEXT_JS_URL || secrets.NEXT_JS_URL_TEST }}
+          USERS: ${{ github.ref_name == 'main' && secrets.USERS || secrets.USERS_TEST }}
+          PM2_NAME: ${{ env.PM2_SERVER_NAME }}
 
   deploy:
     runs-on: self-hosted
-    needs: setup-server
+    needs: start-server
     steps:
-      - name: Install pm2 globally
+      - name: Restart Nginx Service
         run: |
-          npm install pm2@latest -g
-          pm2 update
-
-      - name: Stop production server
-        if: ${{ github.ref_name == 'main' }}
-        continue-on-error: true
-        run: |
-          pm2 delete server2
-          pm2 flush
-
-      - name: Stop testing server
-        if: ${{ github.ref_name == 'test' }}
-        continue-on-error: true
-        run: |
-          pm2 delete test-server2
-          pm2 flush
-
-      - name: Start server with pm2
-        run: |
-          echo "Starting application with PM2..."
-          pm2 start pm2.config.cjs
-          pm2 save
-        working-directory: ${{ github.ref_name }}
-
-      - name: Restart Nginx
-        run: |
-          echo "Reloading Nginx..."
           sudo systemctl reload nginx
-          echo "Restarting Nginx..."
           sudo systemctl restart nginx
