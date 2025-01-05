@@ -23,8 +23,8 @@ If you plan to use AWS as I do, set up or create an AWS account and configure th
 ### Clone the repository
 
 ```bash
-git clone git@github.com:AQA20/500kalima-api.git
-cd 500kalima-api
+git clone git@github.com:AQA20/blog-api.git
+cd blog-api
 ```
 
 ---
@@ -104,6 +104,14 @@ To automatically fix eslint issues:
 
 ```bash
 npm run lint:fix
+```
+
+### Format the code using prettier
+
+To automatically format the code:
+
+```bash
+npm run format
 ```
 
 ### Create a New Migration
