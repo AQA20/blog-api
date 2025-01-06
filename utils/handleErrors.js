@@ -1,10 +1,17 @@
+import logger from "../config/winstonConfig.js";
+
 const handleAsyncError = (func) => {
   return async (...args) => {
     try {
       return await func(...args);
-    } catch (error) {
-      console.error('Caught an error in handleAsyncError:', error);
-      throw error;
+    } catch (err) {
+      logger.error(JSON.stringify({
+        status: err.status,
+        statusCode: err.statusCode,
+        message: `Caught an error in handleAsyncError: ${err.message}`,
+        trace: err.stack,
+      }))
+      throw err;
     }
   };
 };
@@ -13,9 +20,14 @@ const handleAsyncApiError = (func) => {
   return async (req, res, next) => {
     try {
       return await func(req, res, next);
-    } catch (error) {
-      console.error('Caught an error in handleAsyncApiError:', error);
-      next(error);
+    } catch (err) {
+      logger.error(JSON.stringify({
+        status: err.status,
+        statusCode: err.statusCode,
+        message: `handleAsyncApiError: ${err.message}`,
+        trace: err.stack,
+      }))
+      next(err);
     }
   };
 };

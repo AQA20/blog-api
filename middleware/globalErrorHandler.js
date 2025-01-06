@@ -48,7 +48,12 @@ const globalErrorHandler = async (err, req, res, next) => {
   err.statusCode = statusCode;
   err.status = err?.status || 'error';
   
-  logger.error('Global error handler:', err)
+  logger.error(JSON.stringify({
+    status: err.status,
+    statusCode: err.statusCode,
+    message: err.message,
+    trace: err.stack,
+  }))
 
   // Return a detailed error when in development environment!
   if (process.env.NODE_ENV === 'development') {
