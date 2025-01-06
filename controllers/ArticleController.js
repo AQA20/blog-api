@@ -13,6 +13,7 @@ import db from '../config/databaseConnection.js';
 import getQuery from '../utils/getQuery.js';
 import ArticleService from '../services/ArticleService.js';
 import { Op } from 'sequelize';
+import logger from '../config/winstonConfig.js'
 
 export default class ArticleController {
   // Default page size

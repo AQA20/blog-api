@@ -1,3 +1,5 @@
+import logger from "../config/winstonConfig.js";
+
 const devError = (res, err) => {
   return res.status(err.statusCode).json({
     status: err.status,
@@ -30,7 +32,6 @@ const prodError = (res, err) => {
 };
 
 const globalErrorHandler = async (err, req, res, next) => {
-  //todo add error login service use aws & logger like winston
   let statusCode = err?.statusCode || 500;
   switch (err.name) {
     case 'JsonWebTokenError':
@@ -46,6 +47,9 @@ const globalErrorHandler = async (err, req, res, next) => {
 
   err.statusCode = statusCode;
   err.status = err?.status || 'error';
+  
+  logger.error('Global error handler:', err)
+
   // Return a detailed error when in development environment!
   if (process.env.NODE_ENV === 'development') {
     devError(res, err);
