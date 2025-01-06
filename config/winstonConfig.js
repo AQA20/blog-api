@@ -34,7 +34,4 @@ const logger = createLogger({
   ],
 });
 
-// Test logging an error
-logger.info('This is a test error message.');
-
 export default logger;
