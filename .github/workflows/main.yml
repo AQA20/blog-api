@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.ref_name }}/node_modules
-          key: ${{ runner.os }}-server-${{ env.CACHE_KEY }}-${{ hashFiles(env.PACKAGE_LOCK_PATH) }}
+          key: ${{ runner.os }}-server-${{ env.CACHE_KEY }}-${{ hashFiles('**/package.json', '**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-server-${{ env.CACHE_KEY }}
 
