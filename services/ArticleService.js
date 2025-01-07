@@ -163,16 +163,26 @@ export default class ArticleService {
         continue;
       }
 
-      // Create the imageable record in the database
-      const imageable = await Image.create({
-        imageableId: articleId,
-        imageableType: Image.ARTICLE,
-        name,
-        capture,
+      // Check if imageable is already exist
+      const existImageable = await Image.findOne({
+        where: {
+          imageableId: articleId,
+          imageableType: Image.ARTICLE,
+          name,
+        },
       });
 
-      // Push image to the array
-      imageables.push(imageable);
+      if (!existImageable) {
+        // Create the imageable record in the database
+        const imageable = await Image.create({
+          imageableId: articleId,
+          imageableType: Image.ARTICLE,
+          name,
+          capture,
+        });
+        // Push image to the array
+        imageables.push(imageable);
+      }
     }
 
     let sanitizedHtml = dom.serialize();
