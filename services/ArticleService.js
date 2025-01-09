@@ -216,16 +216,24 @@ export default class ArticleService {
           name: tagName,
         },
         transaction,
+        paranoid: false,
       });
 
+      if (tag?.deletedAt) {
+        await tag.restore();
+      }
+
       // Create an article tag which associate articles to tags (many to many relationship)
-      await ArticleTag.findOrCreate({
+      const [articleTag] = await ArticleTag.findOrCreate({
         where: {
           tagId: tag.id,
           articleId,
         },
         transaction,
       });
+      if (articleTag?.deletedAt) {
+        await articleTag.restore();
+      }
     }
   }
 
