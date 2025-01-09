@@ -10,7 +10,12 @@ export default class ArticleTagController {
         tagId,
         articleId,
       },
+      paranoid: false,
     });
+    if (articleTag?.deletedAt) {
+      await Tag.restore({ where: { id: tagId } });
+      await articleTag.restore();
+    }
     return resHandler(201, articleTag, res);
   }
   static async updateArticleTag(req, res) {
