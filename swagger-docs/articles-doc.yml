@@ -1,0 +1,178 @@
+paths:
+  /articles:
+    get:
+      tags:
+       - Articles
+      summary: Fetch a list of articles
+      description: Retrieve paginated, sorted, and filtered articles.
+      operationId: getArticles
+      parameters:
+        - name: search
+          in: query
+          description: Search term to filter articles by title or content.
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination default 1.
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of articles per page (default 10, max 10).
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 10
+        - name: orderBy
+          in: query
+          description: Field to sort by (id, title, or publishedAt).
+          required: false
+          schema:
+            type: string
+            enum:
+              - id
+              - title
+              - publishedAt
+            default: publishedAt
+        - name: order
+          in: query
+          description: Order of sorting (ASC or DESC).
+          required: false
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+            default: DESC
+        - name: status
+          in: query
+          description: Filter articles by status.
+          required: false
+          schema:
+            type: string
+            enum:
+              - Approved
+              - Pending
+              - Trashed
+              - Rejected
+      responses:
+        '200':
+          description: Successful response with a list of articles.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                    description: Current page number.
+                    example: 1
+                  totalPages:
+                    type: integer
+                    description: Total number of pages.
+                    example: 10
+                  hasNextPage:
+                    type: boolean
+                    description: Whether there is a next page.
+                    example: true
+                  articles:
+                    type: array
+                    description: List of articles.
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Unique identifier for the article.
+                          example: 123
+                        title:
+                          type: string
+                          description: Title of the article.
+                          example: "Healthy Eating Tips"
+                        description:
+                          type: string
+                          description: Short description of the article.
+                          example: "Discover 10 tips for maintaining a balanced diet."
+                        featuredImg:
+                          type: string
+                          description: URL of the article's featured image.
+                          example: "https://cdn.500kalima.com/images/healthy-eating.jpg"
+                        publishedAt:
+                          type: string
+                          format: date-time
+                          description: Publication date of the article.
+                          example: "2024-12-25T10:30:00Z"
+        '400':
+          description: Bad request due to invalid query parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message explaining the issue.
+                    example: "Invalid page number."
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message.
+                    example: "An unexpected error occurred."
+        '404':
+          description: Non exist endpoint.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Response status.
+                    example: failed
+                  statusCode:
+                    type: integer
+                    description: Response status code.
+                    example: 404
+                  message:
+                    type: string
+                    description: The error message
+                    example: Can't find /node-api/articless on the server!
+                    
+components:
+  schemas:
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the article.
+          example: 123
+        title:
+          type: string
+          description: Title of the article.
+          example: "Healthy Eating Tips"
+        description:
+          type: string
+          description: Short description of the article.
+          example: "Discover 10 tips for maintaining a balanced diet."
+        featuredImg:
+          type: string
+          description: URL of the article's featured image.
+          example: "https://cdn.500kalima.com/images/healthy-eating.jpg"
+        publishedAt:
+          type: string
+          format: date-time
+          description: Publication date of the article.
+          example: "2024-12-25T10:30:00Z"

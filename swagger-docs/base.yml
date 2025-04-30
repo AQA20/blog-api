@@ -1,0 +1,8 @@
+openapi: 3.0.3
+info:
+  title: API Documentation
+  version: 1.0.0
+  description: Comprehensive API documentation for our application
+servers:
+  - url: https://test.500kalima.com/node-api/
+  - url: https://localhost:8080/node-api/

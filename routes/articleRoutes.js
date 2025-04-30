@@ -14,7 +14,6 @@ import { handleAsyncApiError } from '../utils/handleErrors.js';
 
 const router = express.Router();
 
-// Get all articles
 router.get(
   '/articles',
   getArticlesRequest,
