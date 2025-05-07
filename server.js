@@ -14,6 +14,8 @@ import helmet from 'helmet';
 import corsOptions from './config/corsConfig.js';
 import helmetConfig from './config/helmetConfig.js';
 import rateLimitConfig from './config/rateLimitConfig.js';
+import swaggerUi from 'swagger-ui-express'
+import swaggerDocs from './config/swaggerDocs.js';
 
 // Todo implement unit & integration tests
 
@@ -47,6 +49,9 @@ app.use(nodeApiRoute, tagRoutes);
 app.use(nodeApiRoute, articleTagRoutes);
 app.use(nodeApiRoute, sitemapRoutes);
 
+// Serve swagger docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 // Handle not found routes
 app.all('*', (req, res, next) => {
   // Create new api error
@@ -60,7 +65,8 @@ app.all('*', (req, res, next) => {
 app.use(globalErrorHandler);
 
 const server = app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+  console.log(`Server running at ${process.env.NEXT_JS_URL}${nodeApiRoute}`);
+  console.log(`API Documentation available at ${process.env.NEXT_JS_URL}/api-docs`);
 });
 
 // Catch unhandled Promise rejections
