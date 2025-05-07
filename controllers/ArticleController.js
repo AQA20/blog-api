@@ -17,6 +17,8 @@ import { Op } from 'sequelize';
 export default class ArticleController {
   // Default page size
   static #pageSize = 5;
+  // Related articles limit
+  static #relatedArticlesLimit = 6;
 
   // Update article shares
   static async updateShareArticle(req, res) {
@@ -326,5 +328,78 @@ export default class ArticleController {
       // Return the restored article
       return resHandler(200, article, res);
     });
+  }
+
+  static async getRelatedArticles(req, res) {
+    const { articleId, categoryId, tagIds } = req.validated;
+
+    const STATUS_APPROVED = Article.APPROVED; // Only approved articles
+    const RELATED_LIMIT = ArticleController.#relatedArticlesLimit; // Maximum number of related articles
+
+    // Base query for category + approved status
+    const baseQuery = {
+      where: {
+        categoryId,
+        status: STATUS_APPROVED,
+        id: { [Op.notIn]: [articleId] }, // Exclude the original article
+      },
+      order: [['createdAt', 'DESC']],
+      limit: RELATED_LIMIT,
+      attributes: {
+        // Exclude the 'content' column
+        exclude: ['content'],
+      },
+    };
+
+    // Step 1: Find articles matching category and tags
+    if (tagIds?.length) {
+      baseQuery.include = [
+        {
+          model: Tag,
+          where: { id: { [Op.in]: tagIds } },
+          through: { attributes: [] }, // Don't include join table
+        },
+      ];
+    }
+
+    const tagMatchedArticles = await Article.findAll(baseQuery);
+    let relatedArticles = [...tagMatchedArticles];
+    // Exclude already added and original
+    let excludedIds = [...relatedArticles.map(a => a.id), articleId];  
+
+    // Step 2: If less than 6, find more articles from the same category
+    if (relatedArticles.length < RELATED_LIMIT) {
+      const moreFromCategory = await Article.findAll({
+        where: {
+          categoryId,
+          status: STATUS_APPROVED,
+          id: { [Op.notIn]: excludedIds },
+        },
+        order: [['createdAt', 'DESC']],
+        limit: RELATED_LIMIT - relatedArticles.length,
+        attributes: { exclude: ['content'] }, // Exclude 'content' column
+      });
+
+      relatedArticles = [...relatedArticles, ...moreFromCategory];
+      excludedIds = [...excludedIds, ...moreFromCategory.map(a => a.id)];
+    }
+
+    // Step 3: If still less than 6, fetch latest approved articles globally
+    if (relatedArticles.length < RELATED_LIMIT) {
+      const latestArticles = await Article.findAll({
+        where: {
+          status: STATUS_APPROVED,
+          id: { [Op.notIn]: excludedIds },
+        },
+        order: [['createdAt', 'DESC']],
+        limit: RELATED_LIMIT - relatedArticles.length,
+        attributes: { exclude: ['content'] }, // Exclude 'content' column
+      });
+
+      relatedArticles = [...relatedArticles, ...latestArticles];
+    }
+
+    // Return the list of related articles
+    return resHandler(200, relatedArticles, res);
   }
 }

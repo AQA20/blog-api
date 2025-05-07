@@ -10,6 +10,7 @@ import updateArticleRequest from '../middleware/requests/articles/updateArticleR
 import updateArticleStatus from '../middleware/requests/articles/updateArticleStatus.js';
 import deleteArticleRequest from '../middleware/requests/articles/deleteArticleRequest.js';
 import restoreArticleRequest from '../middleware/requests/articles/restoreArticleRequest.js';
+import getRelatedArticlesRequestMiddleware from '../middleware/requests/articles/getRelatedArticlesRequest.js';
 import { handleAsyncApiError } from '../utils/handleErrors.js';
 
 const router = express.Router();
@@ -39,6 +40,14 @@ router.get(
   '/articles/suggestions',
   getSearchSuggestionsRequest,
   handleAsyncApiError(ArticleController.getSearchSuggestions),
+);
+
+
+// Get related articles
+router.get(
+  '/articles/related/:articleId',
+  getRelatedArticlesRequestMiddleware,
+  handleAsyncApiError(ArticleController.getRelatedArticles),
 );
 
 // Create article
