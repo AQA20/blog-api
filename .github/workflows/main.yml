@@ -11,11 +11,6 @@ jobs:
         run: |
           mkdir -p ${{ github.ref_name }}
 
-      - name: Check pm2
-        run: |
-          echo $PATH
-          which pm2 || echo "pm2 still not found"
-          pm2 --version || echo "pm2 failed"
   start-server:
     needs: create_branch_directory
     runs-on: self-hosted
