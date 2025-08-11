@@ -1,6 +1,6 @@
 # Blog API README
 
-Welcome to my blog repository! This is a blog API project built using `Node.js` and `Express.js`. The production version is live at **https://500kalima.com/node-api/articles**. This document provides a guide about how to setup and run the project as well as an overview of the available commands and their descriptions for managing migrations, seeders and server code. Please follow the instructions below:
+Welcome to my blog repository! This is a blog API project built using `Node.js` and `Express.js`. The production version is live at **https://500kalima.site/node-api/articles**. This document provides a guide about how to setup and run the project as well as an overview of the available commands and their descriptions for managing migrations, seeders and server code. Please follow the instructions below:
 
 ---
 
