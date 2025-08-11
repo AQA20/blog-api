@@ -3,6 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, test]
+
 jobs:
   create_branch_directory:
     runs-on: self-hosted
@@ -25,7 +26,7 @@ jobs:
         id: set-env
         run: |
           echo "CACHE_KEY=${{ github.ref_name == 'main' && 'production' || 'testing' }}" >> $GITHUB_ENV
-          echo "PM2_SERVER_NAME=${{ github.ref_name == 'main' && 'server' || 'test-server'}}" >> $GITHUB_ENV
+          echo "PM2_SERVER_NAME=${{ github.ref_name == 'main' && 'server' || 'test-server' }}" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,12 +38,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.ref_name }}/node_modules
-          key: ${{ runner.os }}-server-${{ env.CACHE_KEY }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ format('{0}-server-{1}-{2}', runner.os, env.CACHE_KEY, hashFiles(format('{0}/package-lock.json', github.ref_name))) }}
           restore-keys: |
-            ${{ runner.os }}-server-${{ env.CACHE_KEY }}
+            ${{ runner.os }}-server-${{ env.CACHE_KEY }}-
 
       - name: Install npm dependencies
-        run: npm ci
+        run: |
+          npm ci || npm install
         if: steps.server_node_modules.outputs.cache-hit != 'true'
 
       - name: Migrate, Seed Database and Start Server
@@ -62,7 +64,7 @@ jobs:
           MYSQL_SSL_CERT: ${{ github.ref_name == 'main' && secrets.MYSQL_SSL_CERT || secrets.MYSQL_SSL_CERT_TEST }}
           MYSQL_SSL_KEY: ${{ github.ref_name == 'main' && secrets.MYSQL_SSL_KEY || secrets.MYSQL_SSL_KEY_TEST }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_FILE_BUCKET: ${{ github.ref_name == 'main' && secrets.AWS_FILE_BUCKET || secrets.AWS_FILE_BUCKET_TEST }}
           AWS_REGION: ${{ github.ref_name == 'main' && secrets.AWS_REGION || secrets.AWS_REGION_TEST }}
           JWT_SECRET: ${{ github.ref_name == 'main' && secrets.JWT_SECRET || secrets.JWT_SECRET_TEST }}
