@@ -60,4 +60,7 @@ router.delete(
   handleAsyncApiError(ImageController.deleteImagePermenanetally),
 );
 
+// Get image
+router.get('/image/:name', handleAsyncApiError(ImageController.getImage));
+
 export default router;
