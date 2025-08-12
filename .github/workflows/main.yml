@@ -73,7 +73,7 @@ jobs:
           PORT: ${{ github.ref_name == 'main' && secrets.PORT || secrets.PORT_TEST }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           COOKIE_SECRET: ${{ github.ref_name == 'main' && secrets.COOKIE_SECRET || secrets.COOKIE_SECRET_TEST }}
-          CLOUDFRONT_BASE_URL: ${{ github.ref_name == 'main' && secrets.CLOUDFRONT_BASE_URL || secrets.CLOUDFRONT_BASE_URL_TEST }}
+          CLOUDFRONT_BASE_URL: ${{ secrets.CLOUDFRONT_BASE_URL_TEST }}
           CLOUDFRONT_KEY_PAIR_ID: ${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}
           CLOUDFRONT_PRIVATE_KEY: ${{ secrets.CLOUDFRONT_PRIVATE_KEY }}
           REVALIDATION_SECRET: ${{ github.ref_name == 'main' && secrets.REVALIDATION_SECRET || secrets.REVALIDATION_SECRET_TEST }}
