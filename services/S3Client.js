@@ -41,10 +41,13 @@ export default class S3Service {
     }
   }
 
+
   getFile(fileName) {
+    const expiry = moment().add(24, 'hours').toDate();
+    console.log("Generating signed URL, expiry:", expiry);
     return getSignedUrl({
       url: `${process.env.CLOUDFRONT_BASE_URL}/${fileName}`,
-      dateLessThan: moment().add('24', 'hours').toDate(),
+      dateLessThan: expiry,
       privateKey: process.env.CLOUDFRONT_PRIVATE_KEY,
       keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID,
     });
