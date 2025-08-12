@@ -98,4 +98,9 @@ export default class ImageController {
     await Image.destroy({ where: { name, imageableType: type }, force: true });
     return resHandler(204, '', res);
   }
+
+  static async getImage(req, res) {
+    const name = req.params.name;
+    return this.s3Service.getFile(name);
+  }
 }
