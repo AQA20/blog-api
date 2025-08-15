@@ -3,6 +3,7 @@ import resHandler from '../services/ResHandler.js';
 import ImageService from '../services/ImageService.js';
 import S3Service from '../services/S3Client.js';
 import ApiError from '../services/ApiError.js';
+import getQuery from '../utils/getQuery.js';
 
 export default class ImageController {
   static #imageService = new ImageService();
@@ -10,8 +11,9 @@ export default class ImageController {
 
   // Get image url
   static async getImageUrl(req, res) {
+    const query = getQuery(req.params.value, 'name');
     // Find image by its primary key
-    const image = await Image.findByPk(req.params.id);
+    const image = await Image.findOne({where: { ...query },});
     if (!image) {
       throw new ApiError('Invalid image id', 404);
     }
@@ -97,10 +99,5 @@ export default class ImageController {
     await ImageController.#s3client.deleteFile(name);
     await Image.destroy({ where: { name, imageableType: type }, force: true });
     return resHandler(204, '', res);
-  }
-
-  static async getImage(req, res) {
-    const name = req.params.name;
-    return this.s3Service.getFile(name);
   }
 }

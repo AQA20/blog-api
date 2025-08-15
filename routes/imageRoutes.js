@@ -10,8 +10,8 @@ import { handleAsyncApiError } from '../utils/handleErrors.js';
 
 const router = express.Router();
 
-// Get Image url
-router.get('/image/:id', handleAsyncApiError(ImageController.getImageUrl));
+// Get Image url by id or name
+router.get('/image/:value', handleAsyncApiError(ImageController.getImageUrl));
 
 // Upload Image
 router.post(
@@ -59,8 +59,5 @@ router.delete(
   isAdmin,
   handleAsyncApiError(ImageController.deleteImagePermenanetally),
 );
-
-// Get image
-router.get('/image/:name', handleAsyncApiError(ImageController.getImage));
 
 export default router;
