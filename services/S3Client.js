@@ -43,13 +43,7 @@ export default class S3Service {
 
 
   getFile(fileName) {
-    const expiry = moment().add(24, 'hours').toDate();
-    return getSignedUrl({
-      url: `${process.env.CLOUDFRONT_BASE_URL}/${fileName}`,
-      dateLessThan: expiry,
-      privateKey: process.env.CLOUDFRONT_PRIVATE_KEY,
-      keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID,
-    });
+    return `${process.env.CLOUDFRONT_BASE_URL}/${fileName}`;
   }
 
   async deleteFile(fileName) {
