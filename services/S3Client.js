@@ -3,7 +3,6 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 
