@@ -6,7 +6,7 @@ on:
 
 jobs:
   create_branch_directory:
-    runs-on: self-hosted
+    runs-on: self-hosted 
     steps:
       - name: Create the Branch Directory
         run: |
