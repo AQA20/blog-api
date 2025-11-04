@@ -51,7 +51,14 @@ jobs:
         run: |
           npm run migrate
           npm run seed 
-          pm2 restart pm2.config.cjs
+          # Check if the app is already running in PM2
+          if pm2 describe "$PM2_NAME" > /dev/null; then
+            echo "PM2 process exists, restarting..."
+            pm2 restart "$PM2_NAME" --update-env
+          else
+            echo "PM2 process does not exist, starting..."
+            pm2 start pm2.config.cjs --update-env
+          fi
           pm2 save
         env:
           NODE_ENV: ${{ github.ref_name == 'main' && 'production' || 'testing' }}
