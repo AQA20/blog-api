@@ -41,6 +41,20 @@ app.use(nodeApiRoute, sitemapRoutes);
 // Serve swagger docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Debug registered routes
+console.log('🔍 Registered routes:');
+app._router.stack.forEach((r) => {
+  if (r.route && r.route.path) {
+    console.log(r.route.path);
+  } else if (r.name === 'router') {
+    r.handle.stack.forEach((layer) => {
+      if (layer.route) {
+        console.log(layer.route.path);
+      }
+    });
+  }
+});
+
 // Handle not found routes
 app.all('*', (req, res, next) => {
   const err = new ApiError(`Can't find ${req.originalUrl} on the server!`, 404);
