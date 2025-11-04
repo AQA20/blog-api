@@ -51,7 +51,7 @@ jobs:
         run: |
           npm run migrate
           npm run seed 
-          pm2 restart pm2.config.cjs
+          pm2 restart pm2.config.js
           pm2 save
         env:
           NODE_ENV: ${{ github.ref_name == 'main' && 'production' || 'testing' }}
