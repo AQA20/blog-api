@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: process.env.PM2_NAME || 'server-dev',
-      script: 'node server.js',
+      script: 'npm start',
       // Group environment variables by purpose
       env: {
         PORT: process.env.PORT || '8085',
