@@ -57,7 +57,7 @@ jobs:
             pm2 restart "$PM2_NAME" --update-env
           else
             echo "PM2 process does not exist, starting..."
-            pm2 start pm2.config.cjs --update-env
+            pm2 start pm2.config.cjs --update-env --node-args="--max-old-space-size=512"
           fi
           pm2 save
         env:
